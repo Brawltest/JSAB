@@ -106,7 +106,7 @@ main.o: D:/Users/asus/Documents/3DS/Project/JSAB/source/main.c \
  D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/sprite.h \
  D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/text.h \
  D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/font.h \
- d:\users\asus\documents\3ds\project\jsab\include\addon.h
+ d:\users\asus\documents\3ds\project\jsab\source\addon.c
 D:/Users/asus/Documents/3DS/Project/JSAB/include/citro2d.h:
 D:/Users/asus/Documents/3DS/Project/JSAB/include/citro3d.h:
 D:/Users/asus/Documents/3DS/Project/JSAB/include/c3d/types.h:
@@ -214,4 +214,4 @@ D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/spritesheet.h:
 D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/sprite.h:
 D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/text.h:
 D:/Users/asus/Documents/3DS/Project/JSAB/include/c2d/font.h:
-d:\users\asus\documents\3ds\project\jsab\include\addon.h:
+d:\users\asus\documents\3ds\project\jsab\source\addon.c:

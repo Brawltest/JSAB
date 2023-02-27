@@ -58,10 +58,12 @@ typedef struct {
 	uint center[2];
 } Player;
 
-typedef struct Animation
+/*typedef struct Animation
 {
   char name[];	
-};
+};*/
+
+char bonjour[] = {'b','\0'};
 
 //---------------------------------------------------------------------------------
 void DrawPlayer(Player player){
@@ -212,9 +214,9 @@ int main(int argc, char* argv[]) {
 		printf("\x1b[13;1HRawDown Input: %ln" , &kDown);
 		// Render the scene
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-			C2D_TargetClear(top, getBackgroundColor(backgroundIndex));
+			C2D_TargetClear(top, backgroundColors[backgroundIndex]);
 			C2D_SceneBegin(top);
-			if(BackgroundSheet && backgroundIndex == 8){C2D_DrawImageAt(TutoBg,0,0,1,NULL,SCREEN_WIDTH/240,SCREEN_HEIGHT/160);}
+			if(backgroundIndex == 8){C2D_DrawImageAt(TutoBg,0,0,1,NULL,SCREEN_WIDTH/240,SCREEN_HEIGHT/160);}
 			DrawPlayer(player);
 			C2D_SpriteSetPos(actSpritePtr,(player.x - player.center[0]),(player.y - player.center[1]));
 			C2D_DrawSprite(actSpritePtr);
