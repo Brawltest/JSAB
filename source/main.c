@@ -1,0 +1,231 @@
+// Simple citro2d sprite drawing example
+// Images borrowed from:
+//   https://kenney.nl/assets/space-shooter-redux
+#include <citro2d.h>
+#include <citro3d.h>
+#include <3ds.h>
+#include "../source/addon.c"
+
+#include <assert.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+
+#define SCREEN_WIDTH  400
+#define SCREEN_HEIGHT 240
+#define CIRCLE_MAXVALUE 154
+#define STARTTIME osGetTime()
+
+bool animate = true;
+
+float JoystickX, \
+	  JoystickY;
+
+/**
+ * @brief "Clamp" is used to bracket a value between {min} et {max}
+ * @param value the Value you want to bracket
+ * @param min the lower your value can be (lower bound)
+ * @param max the higher your value can be (upper bound)
+ *
+ * @return The value if min < value < max
+ */
+/*
+double clamp(double value,double min,double max){
+	if (value > max) return max;
+	else if (value < min) return min;
+	else {return value;}
+}*/
+#define clamp(x,min,max) C2D_Clamp(x,min,max);
+
+const char *to_string(int value){
+	return (const char*)value;
+}
+
+//---------------------------------------------------------------------------------
+
+typedef struct {
+	uint x, /*X pos*/ \
+		 y, /*Y Pos*/ \
+		 sizex, /*Width*/ \
+		 sizey, /*Height*/ \
+		 speed, /*Speed of the player*/ \
+		 frame, /*SpriteSheet Frame (Mario animation)*/ \
+		 lastFrame; /*The last frame of the SpriteSheet*/
+	Color color;
+	int rotation;
+	uint center[2];
+} Player;
+
+typedef struct Animation
+{
+  char name[];	
+};
+
+//---------------------------------------------------------------------------------
+void DrawPlayer(Player player){
+	bool enabled = false;
+	if(enabled)	
+	C2D_DrawRectSolid( \
+		player.x, \
+		player.y, \
+		1, \
+		player.sizex, \
+		player.sizey, \
+		player.color
+	);
+}
+//---------------------------------------------------------------------------------
+time_t GetProcessTime(){return osGetTime() - STARTTIME;} //Get the number of milliseconds as when the application started running
+
+/*static void printConsole(int line,int row,const char* text){
+	char *message;
+	message = strcat("\x1b[",to_string(line)); // + "\x1b[l" where l is line
+	message = strcat(message,";"); // + "\x1b[l;"
+	message = strcat(message,to_string(row)); // + "\x1b[l;r" where r is row
+	message = strcat(message,'H'); // + "\x1b[l;rH" is end of argument
+	message = strcat(message,to_string(text)); // + "\x1b[l;rHtext" Where text is text :/
+	message = strcat(message,"\x1b[K"); // + "\x1b[l;rHtext\x1b[K" end of string
+	printf(message);
+}*/
+
+//---------------------------------------------------------------------------------
+int main(int argc, char* argv[]) {
+//---------------------------------------------------------------------------------
+	// Init libs
+	time_t startTime = osGetTime();
+	romfsInit();
+	gfxInitDefault();
+	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+	C2D_Prepare();
+	consoleInit(GFX_BOTTOM, NULL);
+
+	Color backgroundColors[] = {C2D_Color32(255,000,000,255), \
+						  	  C2D_Color32(000,255,000,255), \
+						  	  C2D_Color32(000,000,255,255), \
+						  	  C2D_Color32(000,000,000,255), \
+						  	  C2D_Color32(050,050,050,255), \
+						  	  C2D_Color32(100,100,100,255), \
+						  	  C2D_Color32(170,170,170,255), \
+						  	  C2D_Color32(255,255,255,255), \
+							  C2D_Color32(000,000,000,255) // This one is for Image Background
+	};
+	short nBgClr = (sizeof(backgroundColors)/backgroundColors[0]);
+	/*
+	u32 BackgroundColors = getBackgroundColor(0);
+	short maxBgI = 7; /// max Background Index of getBackgroundColor
+	*/
+
+	// Create screens
+	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+
+	// Initialize sprites
+	C2D_SpriteSheet MarioSpriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/MarioIdle.t3x");
+	if (!MarioSpriteSheet){printf("\x1b[1;1HSprite:  FAILED\x1b[K"); svcBreak(USERBREAK_PANIC);}
+	C2D_SpriteSheet BackgroundSheet = C2D_SpriteSheetLoad("romfs:/gfx/Tuto_Bg.t3x");
+	if (!BackgroundSheet){printf("\x1b[1;1HSprite:  FAILED\x1b[K"); svcBreak(USERBREAK_PANIC);}
+
+	circlePosition joystickPos;
+	Player player; //create a player
+	
+	C2D_Sprite actSprite;
+	C2D_Sprite* actSpritePtr = &actSprite;
+	C2D_Image TutoBg = C2D_SpriteSheetGetImage(BackgroundSheet,0);
+	C2D_SpriteFromSheet(actSpritePtr,MarioSpriteSheet,1);
+
+	time_t lastUpdate = GetProcessTime(); //Last time the sprite did change
+	time_t waitTime = 50; //in millis
+	short backgroundIndex = 0;
+	player.x = SCREEN_WIDTH/2; //middle screen
+	player.y = SCREEN_HEIGHT/2; //middle screen
+	player.color = C2D_Color32(0,255,255,20);
+	player.sizex = 84;
+	player.sizey = 62;
+	player.speed = 2; //help
+	player.rotation = 0;
+	player.frame = 0;
+	player.lastFrame = C2D_SpriteSheetCount(MarioSpriteSheet) - 1;
+	player.center[0] = player.sizex/2;
+	player.center[1] = player.sizey/2;
+
+	// Main loop
+	while (aptMainLoop())
+	{
+		hidScanInput();
+
+		// Respond to user input
+		u32 kDown = hidKeysDown();
+		if (kDown & KEY_START)
+			break; // break in order to return to hbmenu
+
+		u32 kHeld = hidKeysHeld();
+		if(kHeld & KEY_A) {
+			player.x = SCREEN_WIDTH/2; //middle screen
+			player.y = SCREEN_HEIGHT/2; //middle screen
+		}
+		else if (kDown & KEY_Y) { if(waitTime < 500) waitTime += 10;}
+		else if (kDown & KEY_X) { if(waitTime > 10) waitTime -= 10;}
+	  	else if (kDown & KEY_DLEFT){
+			if(backgroundIndex == 0){backgroundIndex = nBgClr;}
+			else{backgroundIndex--;}}
+		else if (kDown & KEY_DRIGHT){
+			if(backgroundIndex == nBgClr){backgroundIndex = 0;}
+			else{backgroundIndex++;}}
+		else if (kDown & KEY_ZL) player.speed = clamp(player.speed + 1,1,10) // My L & R Buttons don't work so ZL and ZR instead
+		else if (kDown & KEY_ZR) player.speed = clamp(player.speed - 1,1,10)
+
+		if(animate){
+	    if (lastUpdate <= (GetProcessTime() - waitTime)){ //if the last sprite update is 50 milliseconds then change sprite
+			//<check what sprite frame are we in>
+			if(player.frame >= player.lastFrame){
+				player.frame = 0;
+			}
+			else {
+				player.frame++;
+			}
+			C2D_SpriteFromSheet( actSpritePtr, MarioSpriteSheet, player.frame);//<change sprite>
+			lastUpdate = GetProcessTime(); //<update time since changed to actual time>
+		}}
+		
+
+		circleRead(&joystickPos);
+
+		JoystickX = joystickPos.dx / CIRCLE_MAXVALUE; /// Joystick Horizontal Value -1.0f - 1.0f
+		JoystickY = -joystickPos.dy / CIRCLE_MAXVALUE; /// Joystick Vertical Value -1.0f - 1.0f 
+
+		player.x = clamp( player.x + JoystickX * player.speed,0,SCREEN_WIDTH);
+		player.y = clamp( player.y + JoystickY * player.speed,0,SCREEN_HEIGHT);
+
+		printf("\x1b[14;1HSprite:  JSAB\x1b[K");
+		printf("\x1b[2;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime()*6.0f);
+		printf("\x1b[3;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime()*6.0f);
+		printf("\x1b[4;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage()*100.0f);
+		printf("\x1b[6;1HCircleX: %6.2f\x1b[K", JoystickX);
+		printf("\x1b[7;1HCircleY: %6.2f\x1b[K", JoystickY);
+	    //printf("\x1b[8;1HClock:   %s\x1b[K", "");
+		printf("\x1b[8;1HClock:   %lli\x1b[K", GetProcessTime());
+		printf("\x1b[9;1HWait:    %u ; %f\x1b[K", player.speed, (float)(1000/player.speed));
+		printf("\x1b[10;1HWait:    %lli\x1b[K", waitTime);
+		printf("\x1b[12;1HRawHeld Input: %ln" , &kHeld);
+		printf("\x1b[13;1HRawDown Input: %ln" , &kDown);
+		// Render the scene
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+			C2D_TargetClear(top, getBackgroundColor(backgroundIndex));
+			C2D_SceneBegin(top);
+			if(BackgroundSheet && backgroundIndex == 8){C2D_DrawImageAt(TutoBg,0,0,1,NULL,SCREEN_WIDTH/240,SCREEN_HEIGHT/160);}
+			DrawPlayer(player);
+			C2D_SpriteSetPos(actSpritePtr,(player.x - player.center[0]),(player.y - player.center[1]));
+			C2D_DrawSprite(actSpritePtr);
+
+		C3D_FrameEnd(0);
+	}
+
+	// Deinit libs
+	C2D_Fini();
+	C3D_Fini();
+	gfxExit();
+	romfsExit();
+	return 0;
+}

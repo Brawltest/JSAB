@@ -1,0 +1,56 @@
+#include <citro2d.h>
+#include <stdlib.h>
+
+typedef unsigned int uint;
+typedef char* string;
+
+/**
+ * @brief This is a 2D Vector for 2D Space
+ * @param x the horizontal position. 
+ * @param y the vertical position.
+ * @warning Don't call the Vector2::Vector2(); constructor!
+ * @note call Vector2(x,y); instead.
+ * @example Vector2(10,250)
+ */
+typedef struct Vector2
+{   int x,y;
+    Vector2(int x = 0,int y = 0): x(x),y(y) {} // user-defined default constructor
+};
+
+typedef struct Rectangle {
+    int left,top,right,bottom;
+    Rectangle(int left, int top,uint right,uint bottom): left(left),top(top),right(right),bottom(bottom) {}
+};
+
+typedef struct Animation{
+    C2D_Sprite *frames;     // Animation's frames
+    C2D_SpriteSheet spriteSheet; // SpriteSheet of the animation
+    unsigned int fps; //Frame per Seconds of the Animation
+    unsigned int wait; // Time to wait between two frames
+    unsigned int defaultwait; //Default fps
+    int totalFrames;
+
+    /** @brief An Animation is a Sprite Sheet with multiple Sprites that can be animated with his parameters.
+    *   @param frames is all the Sprite on the spritesheet.
+    *   @param spriteSheet is the SpriteSheet of the animation.
+    *   @param fps How much fps (frame per seconds) the animation has to be.
+    */
+    Animation(C2D_Sprite* frames,C2D_SpriteSheet spriteSheet,int fps)
+    { 
+        frames = frames; spriteSheet = spriteSheet; fps = fps;
+        int totalFrames = C2D_SpriteSheetCount(spriteSheet);
+        defaultwait = 1000 / totalFrames;
+        wait = 1000 / fps;
+    }
+};
+
+/** @name AnimatedObject
+ *  @brief AnimObj used to init a object that have multiple sprite and can be animated.
+ */
+typedef struct AnimObj {
+    Vector2 position = Vector2(0,0);
+    float rotation = 0.0f;
+    C2D_Sprite defaultsprite;
+    uint frames = 0;
+    bool isPlaying = false;
+};

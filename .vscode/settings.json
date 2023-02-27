@@ -1,0 +1,29 @@
+{
+    "files.associations": {
+        "citro2d.h": "c",
+        "assert.h": "c",
+        "citro3d.h": "c",
+        "tex3ds.h": "c",
+        "base.h": "c",
+        "sprite.h": "c",
+        "spritesheet.h": "c",
+        "text.h": "c",
+        "font.h": "c",
+        "*.tcc": "cpp",
+        "animate.cpp": "cpp",
+        "types.h": "c",
+        "3ds.h": "c",
+        "synchronization.h": "c",
+        "addons.h": "c",
+        "sprite_animation_manager.h": "c",
+        "stdbool.h": "c",
+        "svc.h": "c",
+        "stdint.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "time.h": "c",
+        "string.h": "c",
+        "addon.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}
