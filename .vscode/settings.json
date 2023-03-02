@@ -23,7 +23,11 @@
         "stdio.h": "c",
         "time.h": "c",
         "string.h": "c",
-        "addon.h": "c"
+        "addon.h": "c",
+        "string": "c",
+        "*.sav": "c",
+        "removed": "plaintext",
+        "addon.c": "cpp"
     },
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
 }

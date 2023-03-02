@@ -41,6 +41,13 @@ GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
 
+# ADDED {
+APP_ICON = $(dir).png
+APP_TITLE = Mario RPG Test
+APP_DESCRIPTION = Test of a custom M&L RPG Project
+APP_AUTHOR = Frakif91
+# }
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------

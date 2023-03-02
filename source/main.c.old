@@ -4,7 +4,7 @@
 #include <citro2d.h>
 #include <citro3d.h>
 #include <3ds.h>
-#include "addon.h"
+#include "../source/addon.c"
 
 #include <assert.h>
 #include <string.h>
@@ -57,21 +57,14 @@ typedef struct {
 	uint center[2];
 } Player;
 
-struct Params
+/*typedef struct Animation
 {
-	bool debuging, animate, background, battle, marioSpriteArea;
-} Settings;
-
-typedef struct Animation
-{
-  cString name;
-  short startIndex;
-  short endIndex;
-  short speed;
-};
+  char name[];	
+};*/
 //---------------------------------------------------------------------------------
 void DrawPlayer(Player player){
-	if(Settings.marioSpriteArea)	
+	bool enabled = false;
+	if(enabled)	
 	C2D_DrawRectSolid( \
 		player.x, \
 		player.y, \
@@ -105,7 +98,23 @@ int main(int argc, char* argv[]) {
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 	consoleInit(GFX_BOTTOM, NULL);
-	//Comment ln107
+
+	Color backgroundColors[] = {C2D_Color32(000,000,000,255), \
+							  C2D_Color32(255,000,000,255), \
+						  	  C2D_Color32(000,255,000,255), \
+						  	  C2D_Color32(000,000,255,255), \
+						  	  C2D_Color32(050,050,050,255), \
+						  	  C2D_Color32(100,100,100,255), \
+						  	  C2D_Color32(170,170,170,255), \
+						  	  C2D_Color32(255,255,255,255), \
+							  C2D_Color32(000,000,000,255) // This one is for Image Background
+	};
+	short nBgClr = (sizeof(backgroundColors)/backgroundColors[0]) - 1;
+	/*
+	u32 BackgroundColors = getBackgroundColor(0);
+	short maxBgI = 7; /// max Background Index of getBackgroundColor
+	*/
+
 	// Create screens
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 
@@ -120,8 +129,7 @@ int main(int argc, char* argv[]) {
 	
 	C2D_Sprite actSprite;
 	C2D_Sprite* actSpritePtr = &actSprite;
-	C2D_Sprite* TutoBg;
-	C2D_SpriteFromSheet(TutoBg,BackgroundSheet,0);
+	C2D_Image TutoBg = C2D_SpriteSheetGetImage(BackgroundSheet,0);
 	C2D_SpriteFromSheet(actSpritePtr,MarioSpriteSheet,1);
 
 	time_t lastUpdate = GetProcessTime(); //Last time the sprite did change
@@ -156,7 +164,12 @@ int main(int argc, char* argv[]) {
 		}
 		else if (kDown & KEY_Y) { if(waitTime < 500) waitTime += 10;}
 		else if (kDown & KEY_X) { if(waitTime > 10) waitTime -= 10;}
-	  	//Comment ln59
+	  	else if (kDown & KEY_ZL){
+			if(backgroundIndex == 0){backgroundIndex = nBgClr;}
+			else{backgroundIndex -= 1;}}
+		else if (kDown & KEY_ZR){
+			if(backgroundIndex >= nBgClr){backgroundIndex = 0;}
+			else{backgroundIndex += 1;}};
 
 	    if (lastUpdate <= (GetProcessTime() - waitTime)){ //if the last sprite update is 50 milliseconds then change sprite
 			//<check what sprite frame are we in>
@@ -179,32 +192,27 @@ int main(int argc, char* argv[]) {
 		player.x = clamp( player.x + JoystickX * player.speed,0,SCREEN_WIDTH);
 		player.y = clamp( player.y + JoystickY * player.speed,0,SCREEN_HEIGHT);
 
-		if(Settings.debuging){
-			printf("\x1b[2;1HSprite:  Mario\x1b[K");
-			printf("\x1b[3;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime()*6.0f);
-			printf("\x1b[4;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime()*6.0f);
-			printf("\x1b[5;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage()*100.0f);
-			printf("\x1b[6;1HCircleX: %6.2f\x1b[K", JoystickX);
-			printf("\x1b[7;1HCircleY: %6.2f\x1b[K", JoystickY);
-	    	//printf("\x1b[8;1HClock:   %s\x1b[K", "");
-			printf("\x1b[8;1HClock:   %lli\x1b[K", osGetTime() - STARTTIME);
-			printf("\x1b[9;1Speed:    %u ; %f\x1b[K", player.speed);
-			printf("\x1b[10;1HWait:   %lli\x1b[K", waitTime);
-			printf("\x1b[12;1HPlyPos: X : %u ; Y : %u\x1b[K", player.x, player.y);
-			printf("\x1b[14;1HRawHeld Input: %s" , "           ");
-			printf("\x1b[15;1HRawDown Input: %s" , "           ");
-			printf("\x1b[14;1HRawHeld Input: %p" , (void*)&kHeld);
-			printf("\x1b[15;1HRawDown Input: %p" , (void*)&kDown);
-		}
+		printf("\x1b[2;1HSprite:  Mario\x1b[K");
+		printf("\x1b[3;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime()*6.0f);
+		printf("\x1b[4;1HGPU:     %6.2f%%\x1b[K", C3D_GetDrawingTime()*6.0f);
+		printf("\x1b[5;1HCmdBuf:  %6.2f%%\x1b[K", C3D_GetCmdBufUsage()*100.0f);
+		printf("\x1b[6;1HCircleX: %6.2f\x1b[K", JoystickX);
+		printf("\x1b[7;1HCircleY: %6.2f\x1b[K", JoystickY);
+	    //printf("\x1b[8;1HClock:   %s\x1b[K", "");
+		printf("\x1b[8;1HClock:   %lli\x1b[K", osGetTime() - STARTTIME);
+		printf("\x1b[9;1Speed:  %u ; %f\x1b[K", player.speed);
+		printf("\x1b[10;1HWait:   %lli\x1b[K", waitTime);
+		printf("\x1b[12;1HRawHeld Input: %p" , (void*)&kHeld);
+		printf("\x1b[13;1HRawDown Input: %p" , (void*)&kDown);
 		// Render the scene
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-			C2D_TargetClear(top, C2D_Color32(0,0,0,255));
+			C2D_TargetClear(top, backgroundColors[backgroundIndex]);
 			C2D_SceneBegin(top);
+			if(backgroundIndex == 8){C2D_DrawImageAt(TutoBg,0,0,1,NULL,SCREEN_WIDTH/240,SCREEN_HEIGHT/160);}
 			DrawPlayer(player);
 			C2D_SpriteSetPos(actSpritePtr,(player.x - player.center[0]),(player.y - player.center[1]));
-			C2D_SpriteSetPos(TutoBg,0,0);
-			C2D_DrawSprite(TutoBg);
 			C2D_DrawSprite(actSpritePtr);
+
 		C3D_FrameEnd(0);
 	}
 

@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import messagebox as msgb
 
 EmuPath = "C:/Users/asus/AppData/Local/Citra/nightly-mingw/citra-qt.exe"
-_3dsFile = "./output/JSAB.3dsx"
+_3dsFile = "./JSAB.3dsx"
 
 def main():
     global code, root
